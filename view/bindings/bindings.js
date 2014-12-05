@@ -3,7 +3,7 @@
 // This file defines the `can-value` attribute for two-way bindings and the `can-EVENT` attribute 
 // for in template event bindings. These are usable in any mustache template, but mainly and documented 
 // for use within can.Component.
-steal("can/util", "can/view/callbacks", "can/control", function (can) {
+steal("can/util", "can/view/stache/mustache_core.js", "can/view/callbacks", "can/control", function (can, mustacheCore) {
 	/**
 	 * @function isContentEditable
 	 * @hide
@@ -176,17 +176,66 @@ steal("can/util", "can/view/callbacks", "can/control", function (can) {
 			// 
 			// For example, can-submit binds on the submit event.
 			event = attributeName.substr("can-".length),
-			// This is the method that the event will initially trigger. It will look up the method by the string name 
+			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			handler = function (ev) {
-				// The attribute value, representing the name of the method to call (i.e. can-submit="foo" foo is the 
-				// name of the method)
-				var attr = removeCurly( el.getAttribute(attributeName) ),
-					scopeData = data.scope.read(attr, {
-						returnObserveMethods: true,
-						isArgument: true
+				// mustacheCore.expressionData will read the attribute
+				// value and parse it identically to how mustache helpers
+				// get parsed.
+				var attrInfo = mustacheCore.expressionData(
+					removeCurly( el.getAttribute(attributeName) ));
+
+				// We grab the first item and treat it as a method that
+				// we'll call.
+				var scopeData = data.scope.read(attrInfo.name.get, {
+					returnObserveMethods: true,
+					isArgument: true
+				});
+
+				// We break out early if the first argument isn't available
+				// anywhere.
+				if (!scopeData.value) {
+					can.dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + attrInfo.name.get, {
+						element: el,
+						scope: data.scope
 					});
-				return scopeData.value.call(scopeData.parent, data.scope._context, can.$(this), ev);
+					return null;
+				}
+
+				// If no arguments are provided, the method will simply
+				// receive the following.
+				var args = [can.$(this), ev];
+
+				// This will make these calls work as expected if no
+				// arguments are passed to the event handler.
+				if (!attrInfo.args.length && can.isEmptyObject(attrInfo.hash)) {
+					args.unshift(data.scope._context);
+				}
+
+				// .expressionData() gives us a hash object representing
+				// any expressions inside the definition that look like
+				// foo=bar. If there's no hash keys, we'll omit this hash
+				// from our method arguments.
+				if (!can.isEmptyObject(attrInfo.hash)) {
+					args.unshift(attrInfo.hash);
+				}
+
+				// We go through each non-hash expression argument and
+				// prepend it to our argument list.
+				if (attrInfo.args.length) {
+					var arg;
+					for (var i = attrInfo.args.length-1; i >= 0; i--) {
+						arg = attrInfo.args[i];
+						if (args.get) {
+							args.unshift(data.scope.read(arg.get, {
+								isArgument: true
+							}).value);
+						} else {
+							args.unshift(arg);
+						}
+					}
+				}
+				return scopeData.value.apply(scopeData.parent, args);
 			};
 
 		// This code adds support for special event types, like can-enter="foo". special.enter (or any special[event]) is 
