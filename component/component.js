@@ -242,8 +242,8 @@ steal("can/util", "can/view/callbacks","can/control", "can/observe", "can/view/m
 
 				// Create a real Scope object out of the scope property
 				var renderedScope = lexicalContent ?
-						this.scope :
-						hookupOptions.scope.add(this.scope),
+						(new can.view.Scope({self: this.scope})).add(this.scope) :
+						hookupOptions.scope.add({self: this.scope}).add(this.scope),
 					options = {
 						helpers: {}
 					};
