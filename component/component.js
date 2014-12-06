@@ -98,12 +98,11 @@ steal("can/util", "can/view/callbacks","can/control", "can/observe", "can/view/m
 				// Setup values passed to component
 				var initalScopeData = {},
 					component = this,
-					// If a template is not provided, we fall back to
-					// dynamic scoping regardless of settings.
-					lexicalContent = ((typeof this.leakScope === "undefined" ?
-									   false :
-									   !this.leakScope) &&
-									  this.template),
+					leakScopeOpt = this.leakScope || can.Component.leakScope,
+					lexicalContent = ((typeof can.Component.leakScope === "undefined" &&
+									   typeof this.leakScope === "undefined") ?
+									  true :
+									  !leakScopeOpt),
 					twoWayBindings = {},
 					// what scope property is currently updating
 					scopePropertyUpdating,
