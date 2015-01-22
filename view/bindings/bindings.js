@@ -217,7 +217,17 @@ steal("can/util", "can/view/stache/mustache_core.js", "can/view/callbacks", "can
 				// foo=bar. If there's no hash keys, we'll omit this hash
 				// from our method arguments.
 				if (!can.isEmptyObject(attrInfo.hash)) {
-					args.unshift(attrInfo.hash);
+					var hash = {};
+					can.each(attrInfo.hash, function(val, key) {
+						if (val && val.hasOwnProperty("get")) {
+							hash[key] = data.scope.read(val.get, {
+								isArgument: true
+							}).value;
+						} else {
+							hash[key] = val;
+						}
+					});
+					args.unshift(hash);
 				}
 
 				// We go through each non-hash expression argument and
