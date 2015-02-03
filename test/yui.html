@@ -9,16 +9,19 @@
     </head>
     
     <body>
-        	<h1 id="qunit-header">YUI Test Suite</h1>
+        
+<h1 id="qunit-header">YUI Test Suite</h1>
 
-        	<h2 id="qunit-banner"></h2>
+        
+<h2 id="qunit-banner"></h2>
 
         <div id="qunit-testrunner-toolbar"></div>
-        	<h2 id="qunit-userAgent"></h2>
+        
+<h2 id="qunit-userAgent"></h2>
 
         <ol id="qunit-tests"></ol>
         <div id="qunit-test-area"></div>
-        <script type="text/javascript" src="../bower_components/steal/steal.js"></script>
+        <script type="text/javascript" src="../node_modules/steal/steal.js" main="@empty"></script>
         <script type="text/javascript" src="//code.jquery.com/qunit/qunit-1.14.0.js"></script>
         <script type="text/javascript">
             if (typeof QUnit === 'undefined') {
@@ -31,7 +34,7 @@
         <script type="text/javascript">
             QUnit.config.autostart = false;
 
-            System['import']("@config").then(function() {
+            System['import']("package.json!npm").then(function() {
                 var config = window.CONFIGURATION = {
                     "paths": {
                         "can/*": "*.js",
