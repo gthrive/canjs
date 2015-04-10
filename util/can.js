@@ -33,6 +33,10 @@ steal(function () {
 		}
 		return d;
 	};
+	
+	can.last = function(arr){
+		return arr && arr[arr.length - 1];
+	};
 
 
 	can.frag = function(item){
